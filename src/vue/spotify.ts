@@ -69,11 +69,10 @@ export function spotifyQuery(url: string, token: string) {
   }).then((resp) => {
     if (resp.status === 200) return resp.json();
 
-    if (resp.status === 204) return { error: "silence" };
+    // if (resp.status === 204) return { error: "silence" };
 
-    // console.log(" err ", resp.status);
     if (resp.status === 401) {
-      console.log(" EXPIRED! ");
+      // EXPIRED
       window.location.href = "/";
       return { error: "expired" };
     }
@@ -91,6 +90,7 @@ export async function getAllTracks(id: string, token: string) {
   let data: Track[] = [];
   let done = false;
 
+  // https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks
   let req = await spotifyQuery(
     `https://api.spotify.com/v1/playlists/${id}/tracks?limit=50`,
     token
@@ -104,8 +104,20 @@ export async function getAllTracks(id: string, token: string) {
       req = await spotifyQuery(req.next, token);
       console.log("x", req);
       data = data.concat(req.items);
-      // done = true;
     }
   }
   return data;
 }
+
+export const getTrackArtists = (t: Track) =>
+  t.track.artists.map((art) => art.name);
+
+export const soundcloudSearch = (t: Track) =>
+  `https://soundcloud.com/search/sounds?q=` +
+  encodeURIComponent([t.track.name, getTrackArtists(t).join(" ")].join(" "));
+
+export const bandcampSearch = (t: Track) =>
+  `https://bandcamp.com/search?item_type=b&q=${encodeURIComponent(
+    getTrackArtists(t).join(" ")
+  )}`;
+// artist + album // `https://bandcamp.com/search?q=` + encodeURIComponent(   [getTrackArtists(t).join(" "), t.track.album.name].join(" ") );
